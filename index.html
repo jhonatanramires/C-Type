@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Monkeytype TOEFL - Quotes on Design & Custom Trainer</title>
+  <style>
+    :root {
+      --bg: #323437;
+      --text-main: #d1d0c5;
+      --text-dim: #646669;
+      --accent: #e2b714;
+      --error: #e53935;
+      --success: #43a047;
+      --revealed: #64b5f6;
+      --panel-bg: #282a2c;
+    }
+    body {
+      font-family: 'Consolas', 'Courier New', monospace;
+      background-color: var(--bg);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 20px;
+      margin: 0;
+    }
+    .nav-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 15px;
+      background: var(--panel-bg);
+      padding: 12px 24px;
+      border-radius: 8px;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 950px;
+      box-sizing: border-box;
+    }
+    .btn-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .label {
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-right: 4px;
+    }
+    button.nav-btn {
+      background: transparent;
+      color: var(--text-dim);
+      border: none;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.95rem;
+      border-radius: 4px;
+      transition: all 0.15s;
+    }
+    button.nav-btn:hover { color: var(--text-main); }
+    button.nav-btn.active {
+      color: var(--accent);
+      background: rgba(226, 183, 20, 0.1);
+    }
+    .separator {
+      border-left: 2px solid #3a3d40;
+      height: 20px;
+      margin: 0 5px;
+    }
+    
+    /* Panel de Control de Fuente de Datos */
+    .source-panel {
+      width: 100%;
+      max-width: 950px;
+      background: rgba(0,0,0,0.2);
+      padding: 15px 24px;
+      border-radius: 8px;
+      margin-bottom: 25px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-sizing: border-box;
+      border: 1px solid #3a3d40;
+    }
+    .source-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    select, input[type="text"] {
+      background: var(--panel-bg);
+      color: var(--text-main);
+      border: 1px solid var(--text-dim);
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    select:focus, input[type="text"]:focus {
+      border-color: var(--accent);
+    }
+    textarea.custom-input {
+      width: 100%;
+      height: 80px;
+      background: var(--panel-bg);
+      color: var(--text-main);
+      border: 1px solid var(--text-dim);
+      border-radius: 4px;
+      padding: 10px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      resize: vertical;
+      box-sizing: border-box;
+      display: none;
+    }
+    
+    .test-container {
+      max-width: 950px;
+      width: 100%;
+      line-height: 2.8;
+      font-size: 1.5rem;
+      background: rgba(0,0,0,0.15);
+      padding: 40px;
+      border-radius: 12px;
+      box-sizing: border-box;
+      min-height: 220px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      position: relative;
+    }
+    .loading-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(50, 52, 55, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.3rem;
+      color: var(--accent);
+      border-radius: 12px;
+      z-index: 10;
+      display: none;
+    }
+    .word-wrapper {
+      display: inline-block;
+      white-space: nowrap;
+      margin-right: 12px;
+    }
+    .visible-part {
+      color: var(--accent);
+      font-weight: bold;
+    }
+    input.cloze-input {
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid var(--text-dim);
+      color: #fff;
+      font-size: 1.5rem;
+      font-family: inherit;
+      text-align: center;
+      outline: none;
+      padding: 0;
+      margin: 0 1px;
+      border-radius: 0;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    input.cloze-input:focus {
+      border-bottom-color: var(--accent);
+      background: rgba(255,255,255,0.05);
+    }
+    input.cloze-input.correct {
+      border-bottom-color: var(--success);
+      color: var(--success);
+    }
+    input.cloze-input.incorrect {
+      border-bottom-color: var(--error);
+      color: var(--error);
+    }
+    input.cloze-input.revealed {
+      border-bottom-color: var(--revealed);
+      color: var(--revealed);
+      font-style: italic;
+    }
+    .footer-actions {
+      margin-top: 35px;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+    .action-btn {
+      font-family: inherit;
+      font-weight: bold;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 1.05rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+    .btn-restart {
+      background: var(--text-dim);
+      color: var(--bg);
+    }
+    .btn-restart:hover {
+      background: var(--accent);
+      color: var(--bg);
+    }
+    .btn-reveal {
+      background: transparent;
+      color: var(--revealed);
+      border: 2px solid var(--revealed);
+    }
+    .btn-reveal:hover {
+      background: rgba(100, 181, 246, 0.1);
+    }
+    .btn-fetch {
+      background: var(--accent);
+      color: var(--bg);
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-fetch:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+
+<div class="nav-bar">
+  <!-- Selector de Largo -->
+  <div class="btn-group">
+    <span class="label">Largo:</span>
+    <button id="len-short" class="nav-btn" onclick="setLength('short')">Corta</button>
+    <button id="len-medium" class="nav-btn active" onclick="setLength('medium')">Media</button>
+    <button id="len-long" class="nav-btn" onclick="setLength('long')">Larga</button>
+  </div>
+
+  <div class="separator"></div>
+
+  <!-- Selector de Enmascaramiento -->
+  <div class="btn-group">
+    <span class="label">Ocultar:</span>
+    <button id="mask-end" class="nav-btn active" onclick="setMaskMode('end')">Final</button>
+    <button id="mask-start" class="nav-btn" onclick="setMaskMode('start')">Inicio</button>
+    <button id="mask-mixed" class="nav-btn" onclick="setMaskMode('mixed')">🎲 Mixto</button>
+  </div>
+</div>
+
+<!-- PANEL DE FUENTES DE DATOS -->
+<div class="source-panel">
+  <div class="source-controls">
+    <span class="label">Fuente de Texto:</span>
+    <select id="api-selector" onchange="handleSourceChange()">
+      <option value="quotes-on-design">🎨 Quotes on Design API 5.0 (WP REST API)</option>
+      <option value="wikipedia">🏛️ API: Wikipedia (Resúmenes Enciclopédicos)</option>
+      <option value="paragraphs">📚 API: Metaphorpsum (Párrafos Académicos)</option>
+      <option value="custom">✍️ Mi Propio Texto (Pegar Texto Personalizado)</option>
+    </select>
+
+    <input type="text" id="wiki-topic" placeholder="Ej: Climate change, DNA, Mars..." style="display: none; width: 200px;">
+
+    <button class="btn-fetch" onclick="fetchAndGenerate()">⚡ Cargar Texto</button>
+  </div>
+
+  <textarea id="custom-textarea" class="custom-input" placeholder="Pega aquí cualquier párrafo, ensayo, noticia o texto de práctica del TOEFL..."></textarea>
+</div>
+
+<div class="test-container" id="test-box">
+  <div class="loading-overlay" id="loading-spinner">⏳ Conectando con API y procesando texto...</div>
+</div>
+
+<div class="footer-actions">
+  <button class="action-btn btn-reveal" onclick="revealAnswers()">👁️ Revelar Respuestas (Esc)</button>
+  <button class="action-btn btn-restart" onclick="fetchAndGenerate()">⟳ Siguiente Test (Tab)</button>
+</div>
+
+<script>
+// Banco de respaldo local en caso de estar offline o si un origin file:// bloquea la red
+const localFallbacks = {
+  short: [
+    "Design is a plan for arranging elements in such a way as best to accomplish a particular purpose.",
+    "Good design is like a refrigerator—when it works, no one notices, but when it doesn't, it sure stinks.",
+    "Simplicity is not the absence of clutter, that's a consequence of simplicity. Simplicity is somehow essentially describing the purpose and place of an object and product."
+  ],
+  medium: [
+    "Although renewable energy infrastructure requires significant upfront capital, the long-term economic sustainability is undeniably beneficial for developing nations seeking technological independence and reduced carbon emissions.",
+    "The subsequent analysis hypothesized that environmental degradation would proceed rapidly without international intervention. Consequently, the theoretical framework established by early researchers required immediate modification to prevent ecological collapse.",
+    "Recent archaeological excavations provided compelling empirical evidence contradicting the conventional timeline. Furthermore, the discovery suggests that trade networks were considerably more sophisticated than previously assumed."
+  ],
+  long: [
+    "The subsequent analysis hypothesized that environmental degradation would proceed rapidly without international intervention. Consequently, the theoretical framework established by early researchers required substantial modification to explain the meteorological anomalies observed over the past decade. Furthermore, interdisciplinary collaboration between oceanographers and atmospheric scientists has become imperative to accurately model complex climate feedback loops and mitigate catastrophic socioeconomic consequences globally.",
+    "Throughout the nineteenth century, the rapid proliferation of industrial machinery transformed agrarian societies into urban centers. However, this transition precipitated unprecedented labor shortages and exacerbated socioeconomic disparities among urban populations. In response, contemporary economists formulated innovative theoretical paradigms designed to balance industrial productivity with ethical labor regulations, ultimately laying the foundation for modern macroeconomic policy."
+  ]
+};
+
+let currentLength = 'medium';  
+let currentMaskMode = 'end';   
+let currentText = localFallbacks.medium[0];
+
+function setLength(len) {
+  currentLength = len;
+  updateButtons('len-', len, ['short', 'medium', 'long']);
+  fetchAndGenerate();
+}
+
+function setMaskMode(mode) {
+  currentMaskMode = mode;
+  updateButtons('mask-', mode, ['end', 'start', 'mixed']);
+  renderClozeEngine(currentText);
+}
+
+function updateButtons(prefix, activeVal, allVals) {
+  allVals.forEach(val => {
+    const btn = document.getElementById(`${prefix}${val}`);
+    if (btn) btn.classList.remove('active');
+  });
+  const activeBtn = document.getElementById(`${prefix}${activeVal}`);
+  if (activeBtn) activeBtn.classList.add('active');
+}
+
+function handleSourceChange() {
+  const source = document.getElementById('api-selector').value;
+  const wikiInput = document.getElementById('wiki-topic');
+  const customTextarea = document.getElementById('custom-textarea');
+
+  wikiInput.style.display = source === 'wikipedia' ? 'inline-block' : 'none';
+  customTextarea.style.display = source === 'custom' ? 'block' : 'none';
+
+  if (source === 'custom' && customTextarea.value.trim() === '') {
+    customTextarea.value = "Although renewable energy infrastructure requires significant upfront capital, the long-term economic sustainability is undeniably beneficial for developing nations seeking technological independence.";
+  }
+}
+
+// FUNCIÓN DE CONEXIÓN A APIS CON SOPORTE PARA WORDPRESS REST API
+async function fetchAndGenerate() {
+  const source = document.getElementById('api-selector').value;
+  const spinner = document.getElementById('loading-spinner');
+  
+  if (source === 'custom') {
+    const customText = document.getElementById('custom-textarea').value.trim();
+    currentText = customText || "Please paste some valid text in the custom text area above to start practicing.";
+    renderClozeEngine(currentText);
+    return;
+  }
+
+  spinner.style.display = 'flex';
+
+  try {
+    if (source === 'quotes-on-design') {
+      // 1. Añadimos un parámetro de timestamp (_=Date.now()) para evitar que el navegador cachee la respuesta
+      const res = await fetch(`https://quotesondesign.com/wp-json/wp/v2/posts/?orderby=rand&_=${Date.now()}`);
+      const data = await res.json();
+      
+      if (data && data.length > 0 && data[0].content && data[0].content.rendered) {
+        // 2. WP REST API devuelve HTML dentro de rendered. Usamos DOMParser para extraer solo texto limpio y decodificar entidades (ej. &#8217; -> ')
+        const doc = new DOMParser().parseFromString(data[0].content.rendered, 'text/html');
+        const cleanText = doc.body.textContent || "";
+        currentText = cleanText.trim();
+      } else {
+        throw new Error("Invalid structure from Quotes on Design WP REST API");
+      }
+      
+    } else if (source === 'wikipedia') {
+      let topic = document.getElementById('wiki-topic').value.trim();
+      if (!topic) {
+        const defaultTopics = ['Photosynthesis', 'Industrial_Revolution', 'Plate_tectonics', 'Quantum_mechanics', 'Ancient_Egypt', 'Macroeconomics'];
+        topic = defaultTopics[Math.floor(Math.random() * defaultTopics.length)];
+        document.getElementById('wiki-topic').value = topic;
+      }
+      
+      const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(topic)}`);
+      const data = await res.json();
+      
+      if (data.extract) {
+        const sentences = data.extract.split('. ');
+        if (currentLength === 'short') currentText = sentences.slice(0, 1).join('. ') + '.';
+        else if (currentLength === 'medium') currentText = sentences.slice(0, 3).join('. ') + '.';
+        else currentText = data.extract;
+      } else {
+        currentText = "Could not find a Wikipedia article for that topic. Please try another scientific or historical term.";
+      }
+
+    } else if (source === 'paragraphs') {
+      const sentencesCount = currentLength === 'short' ? 2 : currentLength === 'medium' ? 4 : 8;
+      const res = await fetch(`http://metaphorpsum.com/paragraphs/1/${sentencesCount}`);
+      const text = await res.text();
+      if (text) {
+        currentText = text;
+      } else {
+        throw new Error("Invalid text from Paragraphs API");
+      }
+    }
+  } catch (error) {
+    console.warn("Notice: Podría haber un bloqueo por abrir el archivo localmente con 'file://' o la API está temporalmente offline. Usando banco local de respaldo:", error);
+    const pool = localFallbacks[currentLength];
+    currentText = pool[Math.floor(Math.random() * pool.length)];
+  } finally {
+    spinner.style.display = 'none';
+    renderClozeEngine(currentText);
+  }
+}
+
+// MOTOR DE RENDERIZADO MONKEYTYPE CLOZE
+function renderClozeEngine(text) {
+  const box = document.getElementById('test-box');
+  const spinner = document.getElementById('loading-spinner');
+  box.innerHTML = '';
+  box.appendChild(spinner);
+
+  const wordsArray = text.split(' ');
+
+  const eligibleIndices = [];
+  wordsArray.forEach((w, idx) => {
+    const match = w.match(/^([^\w]*)([\w']+)([^\w]*)$/);
+    if (match && match[2].length >= 5) {
+      eligibleIndices.push(idx);
+    }
+  });
+
+  const targetMaskCount = Math.max(2, Math.floor(eligibleIndices.length * 0.35));
+  const shuffledIndices = [...eligibleIndices].sort(() => 0.5 - Math.random());
+  const selectedMaskIndices = new Set(shuffledIndices.slice(0, targetMaskCount));
+
+  wordsArray.forEach((rawWord, idx) => {
+    const match = rawWord.match(/^([^\w]*)([\w']+)([^\w]*)$/);
+    
+    if (!match || !selectedMaskIndices.has(idx)) {
+      const span = document.createElement('span');
+      span.className = 'word-wrapper';
+      span.textContent = rawWord;
+      box.appendChild(span);
+      return;
+    }
+
+    const [, leadingPunc, coreWord, trailingPunc] = match;
+    const len = coreWord.length;
+    const visibleLen = Math.floor(len / 2);
+    const hiddenLen = len - visibleLen;
+
+    let effectiveMode = currentMaskMode;
+    if (currentMaskMode === 'mixed') {
+      effectiveMode = Math.random() < 0.5 ? 'end' : 'start';
+    }
+
+    let visibleText = '', hiddenAnswer = '';
+
+    if (effectiveMode === 'end') {
+      visibleText = coreWord.slice(0, visibleLen);
+      hiddenAnswer = coreWord.slice(visibleLen);
+    } else {
+      visibleText = coreWord.slice(hiddenLen);
+      hiddenAnswer = coreWord.slice(0, hiddenLen);
+    }
+
+    const wrapper = document.createElement('span');
+    wrapper.className = 'word-wrapper';
+
+    const visibleSpan = document.createElement('span');
+    visibleSpan.className = 'visible-part';
+    visibleSpan.textContent = visibleText;
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'cloze-input';
+    input.maxLength = hiddenLen;
+    input.dataset.answer = hiddenAnswer.toLowerCase();
+    input.style.width = `${hiddenLen}ch`;
+
+    wrapper.appendChild(document.createTextNode(leadingPunc));
+    if (effectiveMode === 'end') {
+      wrapper.appendChild(visibleSpan);
+      wrapper.appendChild(input);
+    } else {
+      wrapper.appendChild(input);
+      wrapper.appendChild(visibleSpan);
+    }
+    wrapper.appendChild(document.createTextNode(trailingPunc));
+
+    box.appendChild(wrapper);
+
+    input.addEventListener('keydown', (e) => {
+      const allInputs = Array.from(document.querySelectorAll('input.cloze-input'));
+      const currentIndex = allInputs.indexOf(input);
+
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        
+        if (input.value.trim().toLowerCase() === input.dataset.answer) {
+          input.classList.remove('incorrect', 'revealed');
+          input.classList.add('correct');
+        } else {
+          input.classList.remove('correct', 'revealed');
+          input.classList.add('incorrect');
+        }
+
+        if (currentIndex > -1 && currentIndex < allInputs.length - 1) {
+          allInputs[currentIndex + 1].focus();
+        }
+      }
+      
+      if (e.key === 'Backspace' && input.value === '' && currentIndex > 0) {
+        e.preventDefault();
+        allInputs[currentIndex - 1].focus();
+      }
+    });
+  });
+
+  const firstInput = document.querySelector('input.cloze-input');
+  if (firstInput) firstInput.focus();
+}
+
+function revealAnswers() {
+  const allInputs = document.querySelectorAll('input.cloze-input');
+  allInputs.forEach(input => {
+    if (!input.classList.contains('correct')) {
+      input.value = input.dataset.answer;
+      input.classList.remove('incorrect');
+      input.classList.add('revealed');
+    }
+  });
+}
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    fetchAndGenerate();
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    revealAnswers();
+  }
+});
+
+handleSourceChange();
+fetchAndGenerate();
+</script>
+
+</body>
+</html>
